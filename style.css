@@ -129,6 +129,8 @@ video {
 }
 
 /* ===== Responsiveness ===== */
+
+  
 @media (max-width: 480px) {
   .bottom-nav {
     padding: 8px 12px;
@@ -184,8 +186,12 @@ video {
 }
 
 /* ===== Default (desktop) ===== */
-#copyBtn1 { top: 30%; }
-#copyBtn2 { top: 65%; }
+#copyBtn1 { top: 27%; }
+#copyBtn2 { top: 58%; }
+.copy-btn {
+    width: 100vw;
+    max-width: 550px;
+  }
 
 /* ===== Tablet (≤ 1024px) ===== */
 @media (max-width: 1024px) {
@@ -213,6 +219,6 @@ video {
     width: 20vw;
     max-width: 85px;
   }
-  #copyBtn1 { top: 28%; }
-  #copyBtn2 { top: 62%; }
+  #copyBtn1 { top: 30%; }
+  #copyBtn2 { top: 61%; }
 }
