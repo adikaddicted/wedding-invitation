@@ -202,8 +202,8 @@ video {
 /* ===== Desktop scaling fix ===== */
 @media (min-width: 1024px) {
   #storyIcon {
-    width: 300px;   /* lebih proporsional daripada 600px */
-    bottom: 2%;
+    width: 200px;   /* lebih proporsional daripada 600px */
+    bottom: 1%;
   }
 
   .location-button-img {
@@ -240,6 +240,7 @@ video {
     bottom: 15%;
   }
 }
+
 
 
 
