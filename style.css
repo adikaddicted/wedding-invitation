@@ -202,12 +202,12 @@ video {
 /* ===== Desktop scaling fix ===== */
 @media (min-width: 1024px) {
   #storyIcon {
-    width: 200px;   /* lebih proporsional daripada 600px */
-    bottom: 1%;
+    width: 300px;   /* lebih proporsional daripada 600px */
+    bottom: 2%;
   }
 
   .location-button-img {
-    width: 560px;   /* biar nggak terlalu besar */
+    width: 260px;   /* biar nggak terlalu besar */
   }
 
   .bottom-nav {
@@ -216,8 +216,8 @@ video {
   }
 
   .nav-btn {
-    width: 200px;    /* lebih realistis buat desktop */
-    height: 200px;
+    width: 80px;    /* lebih realistis buat desktop */
+    height: 80px;
     border-radius: 50%;
     background: rgba(255,255,255,0.35);
     display: flex;
@@ -229,7 +229,7 @@ video {
   }
 
   .copy-btn {
-    width: 400px;   /* lebih proporsional */
+    width: 200px;   /* lebih proporsional */
   }
 
   #copyBtn1 {
@@ -240,5 +240,7 @@ video {
     bottom: 22%;
   }
 }
+
+
 
 
