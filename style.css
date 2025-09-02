@@ -216,8 +216,8 @@ video {
   }
 
   .nav-btn {
-    width: 20px;    /* lebih realistis buat desktop */
-    height: 20px;
+    width: 60px;    /* lebih realistis buat desktop */
+    height: 60px;
     border-radius: 50%;
     background: rgba(255,255,255,0.35);
     display: flex;
@@ -240,6 +240,7 @@ video {
     bottom: 15%;
   }
 }
+
 
 
 
