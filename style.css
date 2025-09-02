@@ -1,0 +1,224 @@
+/* ===== Reset & Layout ===== */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.mobile-wrapper {
+  position: relative;
+  height: 100vh;
+  aspect-ratio: 9 / 16;
+  max-height: 100%;
+  max-width: calc(100vh * (9 / 16));
+  border-radius: 20px;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.mobile-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.page {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  scroll-snap-align: start;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== Page 1 Story Icon ===== */
+#storyIcon {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: auto;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#storyIcon.story-show {
+  opacity: 1;
+  pointer-events: auto;
+  animation: fadeInBounce 0.8s ease forwards;
+}
+
+/* ===== Page 6 Location Button ===== */
+.location-button-img {
+  position: absolute;
+  top: 70%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: auto;
+  cursor: pointer;
+  z-index: 10;
+  border: none;
+  background: none;
+  opacity: 0;
+}
+
+.location-button-img.location-show {
+  opacity: 1;
+  animation: fadeInBounce 0.8s ease forwards;
+}
+
+/* ===== Navbar ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.35);
+  padding: 12px 18px;
+  border-radius: 60px;
+  display: flex;
+  gap: 16px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.nav-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(255,255,255,0.55);
+  transform: scale(1.15);
+}
+
+.nav-btn img {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+
+.nav-btn:active img {
+  transform: scale(0.9);
+}
+
+/* ===== Responsiveness ===== */
+
+  
+@media (max-width: 480px) {
+  .bottom-nav {
+    padding: 8px 12px;
+    gap: 12px;
+  }
+
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nav-btn img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ===== Animasi ===== */
+@keyframes fadeInBounce {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.1);
+  }
+  80% {
+    transform: translateX(-50%) scale(0.95);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* ===== Page 7 Copy Buttons ===== */
+.copy-btn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  width: 16vw;              /* default lebih proporsional */
+  max-width: 100px;
+  height: auto;
+  cursor: pointer;
+  z-index: 15;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.copy-btn.copy-show {
+  opacity: 1;
+  animation: fadeInBounce 0.8s ease forwards;
+}
+
+/* ===== Default (desktop) ===== */
+#copyBtn1 { top: 27%; }
+#copyBtn2 { top: 58%; }
+.copy-btn {
+    width: 100vw;
+    max-width: 550px;
+  }
+
+/* ===== Tablet (≤ 1024px) ===== */
+@media (max-width: 1024px) {
+  .copy-btn {
+    width: 17vw;
+    max-width: 95px;
+  }
+  #copyBtn1 { top: 30%; }
+  #copyBtn2 { top: 64%; }
+}
+
+/* ===== Mobile medium (≤ 768px) ===== */
+@media (max-width: 768px) {
+  .copy-btn {
+    width: 18vw;
+    max-width: 90px;
+  }
+  #copyBtn1 { top: 29%; }
+  #copyBtn2 { top: 63%; }
+}
+
+/* ===== Mobile kecil (≤ 480px) ===== */
+@media (max-width: 480px) {
+  .copy-btn {
+    width: 20vw;
+    max-width: 85px;
+  }
+  #copyBtn1 { top: 30%; }
+  #copyBtn2 { top: 61%; }
+}
