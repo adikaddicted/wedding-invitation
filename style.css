@@ -8,8 +8,8 @@ html, body {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  touch-action: pan-y;       /* hanya scroll vertical */
-  overscroll-behavior: none; /* cegah overscroll bounce */
+  touch-action: pan-y;
+  overscroll-behavior: none;
 }
 
 * { box-sizing: border-box; }
@@ -36,6 +36,14 @@ html, body {
   scroll-snap-align: start;
 }
 
+.nav-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #000; /* ini bikin lingkaran hitam keliatan */
+}
+
 video {
   width: 100%;
   height: 100%;
@@ -43,9 +51,7 @@ video {
   background: black;
 }
 
-/* ===== Overlay base (semua tombol & navbar) =====
-   NOTE: posisi (left/top) akan di-set oleh JS; CSS hanya styling/size.
-*/
+/* ===== Overlay base ===== */
 #storyIcon,
 .location-button-img,
 .copy-btn,
@@ -59,14 +65,13 @@ video {
   pointer-events: auto;
 }
 
-/* helper hidden class (if used in HTML) */
 .hidden { opacity: 0; pointer-events: none; }
 
 /* ===== Story Icon ===== */
 #storyIcon {
   width: clamp(80px, 40%, 180px);
   cursor: pointer;
-  opacity: 0; /* visible when .story-show ditambahkan via JS */
+  opacity: 0;
 }
 #storyIcon.story-show {
   opacity: 1;
@@ -78,7 +83,7 @@ video {
 .location-button-img {
   width: clamp(60px, 18%, 120px);
   cursor: pointer;
-  opacity: 0; /* visibility toggled by page6 observer via .location-show */
+  opacity: 0;
 }
 .location-button-img.location-show {
   opacity: 1;
@@ -90,17 +95,14 @@ video {
   width: clamp(50px, 16%, 100px);
   height: auto;
   cursor: pointer;
-  opacity: 0; /* toggled by page7 observer */
+  opacity: 0;
 }
 .copy-btn.copy-show {
   opacity: 1;
   animation: fadeInBounce 0.8s ease forwards;
 }
 
-/* ===== Navbar =====
-   Default hidden. JS will toggle opacity/pointerEvents when in page 2-5.
-   Position will be set by JS (so it aligns to video).
-*/
+/* ===== Navbar (default mobile) ===== */
 .bottom-nav {
   display: flex;
   gap: 10px;
@@ -110,7 +112,6 @@ video {
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 16px rgba(0,0,0,0.25);
 
-  /* default hidden to avoid flash on load */
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, -50%) scale(0.9);
@@ -140,7 +141,7 @@ video {
   100% { transform: translate(-50%, -50%) scale(1); }
 }
 
-/* ====== TOAST ====== */
+/* ===== Toast ===== */
 .toast {
   position: fixed;
   bottom: 15%;
@@ -161,130 +162,33 @@ video {
   transform: translateX(-50%) translateY(0);
 }
 
-/* === FIX khusus layar 853x1280 === */
-@media screen and (width: 853px) and (height: 1280px) {
-    #storyIcon {
-    width: 300px;   /* lebih proporsional daripada 600px */
-    bottom: 1%;
-  }
-
-  .location-button-img {
-    width: 160px;   /* biar nggak terlalu besar */
-  }
-
-  .bottom-nav {
-    gap: 24px;      /* atur jarak antar tombol navbar */
-    padding: 10px 20px; /* biar ada napas */
-  }
-
-  .nav-btn {
-    width: 75px;    /* lebih realistis buat desktop */
-    height: 75px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.35);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.3s ease;
-    flex-shrink: 0;
-  }
-
-  .copy-btn {
-    width: 150px;   /* lebih proporsional */
-  }
-
-  #copyBtn1 {
-    top: 29%;
-  }
-
-  #copyBtn2 {
-    bottom: 22%;
-  }
-}
-
-/* === FIX khusus desktop (layar lebar) === */
+/* === Desktop (konsisten ukuran fix px) === */
 @media screen and (min-width: 1024px) {
-  #storyIcon {
-    width: 200px;   /* lebih proporsional daripada 600px */
-    bottom: 1%;
-  }
-
-  .location-button-img {
-    width: 100px;   /* biar nggak terlalu besar */
-  }
-
-  .bottom-nav {
-    gap: 24px;      /* atur jarak antar tombol navbar */
-    padding: 10px 20px; /* biar ada napas */
-  }
-
-  .nav-btn {
-    width: 75px;    /* lebih realistis buat desktop */
-    height: 75px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.35);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.3s ease;
-    flex-shrink: 0;
-  }
-
-  .copy-btn {
-    width: 100px;   /* lebih proporsional */
-  }
-
-  #copyBtn1 {
-    top: 29%;
-  }
-
-  #copyBtn2 {
-    bottom: 22%;
-  }
+  #storyIcon { width: 200px; bottom: 1%; }
+  .location-button-img { width: 100px; }
+  .bottom-nav { gap: 20px; padding: 10px 20px; }
+  .nav-btn { width: 64px; height: 64px; }
+  .copy-btn { width: 100px; }
 }
 
-/* === FIX khusus NEST HUB (layar lebar) === */
-@media screen and (width: 1024px) and (height: 600px)
-{
-  #storyIcon {
-    width: 100px;   /* lebih proporsional daripada 600px */
-    bottom: 1%;
-  }
-
-  .location-button-img {
-    width: 100px;   /* biar nggak terlalu besar */
-  }
-
-  .bottom-nav {
-    gap: 24px;      /* atur jarak antar tombol navbar */
-    padding: 10px 20px; /* biar ada napas */
-  }
-
-  .nav-btn {
-    width: 40px;    /* lebih realistis buat desktop */
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.35);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.3s ease;
-    flex-shrink: 0;
-  }
-
-  .copy-btn {
-    width: 75px;   /* lebih proporsional */
-  }
-
-  #copyBtn1 {
-    top: 29%;
-  }
-
-  #copyBtn2 {
-    bottom: 22%;
-  }
+/* === FIX khusus NEST HUB (1024x600) === */
+@media screen and (width: 1024px) and (height: 600px) {
+  #storyIcon { width: 100px; bottom: 1%; }
+  .location-button-img { width: 100px; }
+  .bottom-nav { gap: 16px; padding: 8px 16px; }
+  .nav-btn { width: 40px; height: 40px; }
+  .copy-btn { width: 75px; }
+  #copyBtn1 { top: 29%; }
+  #copyBtn2 { bottom: 22%; }
 }
 
+/* ===== Global Loader ===== */
+#globalLoader {
+  position: fixed;
+  inset: 0;
+  background: #000 url("assets/videos/pleasewait.gif") center center no-repeat;
+  background-size: contain;
+  z-index: 9999;
+  display: none;
+}
+#globalLoader.active { display: block; }

@@ -2,16 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dika & Nova Wedding Invitation</title>
+  <title>The Wedding of Dika & Nova</title>
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Primary Meta -->
+  <meta name="title" content="The Wedding of Dika & Nova" />
+  <meta name="description" content="Saturday, October 4th, 2025" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kanowedding.space/" />
+  <meta property="og:title" content="The Wedding of Dika & Nova" />
+  <meta property="og:description" content="Saturday, October 4th, 2025" />
+  <meta property="og:image" content="https://kanowedding.space/logo.jpg" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://kanowedding.space/" />
+  <meta name="twitter:title" content="The Wedding of Dika & Nova" />
+  <meta name="twitter:description" content="Saturday, October 4th, 2025" />
+  <meta name="twitter:image" content="https://kanowedding.space/logo.jpg" />
+
+  <!-- Extra fallback -->
+  <link rel="image_src" href="https://kanowedding.space/logo.jpg" />
+
+  <!-- Optional (nice touch for mobile browsers) -->
+  <meta name="theme-color" content="#ffffff" />
 </head>
 <body>
   <div class="mobile-wrapper">
 
     <!-- Page 1 -->
     <div class="video-container page" id="page1">
-      <video id="video1" src="assets/videos/1.mp4" autoplay muted playsinline preload="auto"></video>
+      <video id="video1" src="assets/videos/1.mp4" autoplay muted playsinline preload="auto" poster="assets/images/cover.jpg"></video>
       <img id="storyIcon" src="assets/icons/story.png" alt="story icon" class="hidden">
     </div>
 
@@ -23,42 +48,24 @@
     <!-- Page 3 -->
     <div class="video-container page" id="page3">
       <video id="video3" src="assets/videos/3.mp4" playsinline preload="auto"></video>
+      <img id="locationBtn" src="assets/icons/location.png" alt="Location" class="location-button-img">
     </div>
 
     <!-- Page 4 -->
     <div class="video-container page" id="page4">
       <video id="video4" src="assets/videos/4.mp4" playsinline preload="auto"></video>
+      <img src="assets/icons/copy.png" id="copyBtn1" class="copy-btn" alt="Copy 1">
+      <img src="assets/icons/copy.png" id="copyBtn2" class="copy-btn" alt="Copy 2">
     </div>
 
     <!-- Page 5 -->
     <div class="video-container page" id="page5">
       <video id="video5" src="assets/videos/5.mp4" playsinline preload="auto"></video>
-    </div>
-
-    <!-- Page 6 -->
-   <div class="video-container page" id="page6">
-  <video id="video6" src="assets/videos/6.mp4" playsinline preload="auto"></video>
-  <img id="locationBtn" src="assets/icons/location.png" alt="Location" class="location-button-img">
-</div>
-
-   <!-- Page 7 -->
-<div class="video-container page" id="page7">
-  <video id="video7" src="assets/videos/7.mp4" playsinline preload="auto"></video>
-
-  <!-- Copy buttons -->
-  <img src="assets/icons/copy.png" id="copyBtn1" class="copy-btn" alt="Copy 1">
-  <img src="assets/icons/copy.png" id="copyBtn2" class="copy-btn" alt="Copy 2">
-</div>
-
-    <!-- Page 8 -->
-    <div class="video-container page" id="page8">
-      <video id="video8" src="assets/videos/8.mp4" playsinline preload="auto"></video>
       <div class="closing-text">
         And so our forever begins... <br>
         <strong>Dika & Nova</strong>
       </div>
     </div>
-
 
   </div>
 
@@ -71,8 +78,11 @@
   </div>
 
   <script src="script.js"></script>
-<div id="toast" class="toast"></div>
-<audio id="bgMusic" src="assets/music/song.mp3" preload="auto" loop></audio>
+  <div id="toast" class="toast"></div>
+  <audio id="bgMusic" src="assets/music/song.mp3" preload="auto" loop></audio>
 
+  <!-- Global Loader -->
+  <div id="globalLoader" class="active"></div>
 </body>
 </html>
+

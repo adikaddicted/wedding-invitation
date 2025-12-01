@@ -1,3 +1,4 @@
+// script.js — REPLACE your current script.js with this (keep HTML/CSS as-is)
 document.addEventListener('DOMContentLoaded', () => {
   const pages = document.querySelectorAll('.page');
   const bottomNav = document.getElementById('navbar');
@@ -7,27 +8,133 @@ document.addEventListener('DOMContentLoaded', () => {
   const locationBtn = document.getElementById('locationBtn');
   const copyBtn1 = document.getElementById('copyBtn1');
   const copyBtn2 = document.getElementById('copyBtn2');
-
+  const globalLoader = document.getElementById('globalLoader');
+  
   // ==== AUDIO ====
   const audio = document.getElementById('bgMusic');
   let isPlaying = false;
-  audio.load(); // pastikan buffer siap
+  if (audio) try { audio.load(); } catch(e){/*ignore*/}
 
-  // initial state
-  bottomNav.style.opacity = "0";
-  bottomNav.style.pointerEvents = "none";
+  // initial state (do not change layout positions)
+  if (bottomNav) { bottomNav.style.opacity = "0"; bottomNav.style.pointerEvents = "none"; }
   if (locationBtn) { locationBtn.style.opacity = "0"; locationBtn.style.pointerEvents = "none"; }
   if (copyBtn1) { copyBtn1.style.opacity = "0"; copyBtn1.style.pointerEvents = "none"; }
   if (copyBtn2) { copyBtn2.style.opacity = "0"; copyBtn2.style.pointerEvents = "none"; }
-  mobileWrapper.style.overflowY = "hidden"; // lock page1 scroll
+  if (mobileWrapper) mobileWrapper.style.overflowY = "hidden";
 
-  // preload video
-  pages.forEach(p => {
-    const v = p.querySelector('video');
-    if (v) v.preload = 'auto';
-  });
+  // loader helpers
+  function showLoader(){ if (globalLoader) globalLoader.classList.add('active'); }
+  function hideLoader(){ if (globalLoader) globalLoader.classList.remove('active'); }
 
-  // helper visible rect
+  // Safari-friendly per-video readiness promise:
+  // resolves when canplaythrough OR loadeddata observed OR readyState >= 3 OR timeout
+  function waitVideoReady(video, timeoutMs = 9000) {
+    return new Promise((resolve) => {
+      if (!video) return resolve({ video, ok: false, reason: 'no-video' });
+
+      // Already ready states
+      if (video.readyState >= 3) {
+        video.dataset.ready = "true";
+        return resolve({ video, ok: true, reason: 'already' });
+      }
+
+      let done = false;
+      const mark = (ok, reason) => {
+        if (done) return;
+        done = true;
+        try { video.dataset.ready = "true"; } catch(e){/*ignore*/}
+        cleanup();
+        resolve({ video, ok: !!ok, reason });
+      };
+
+      const onCanPlay = () => mark(true, 'canplaythrough');
+      const onLoadedData = () => {
+        // loadeddata is often what Safari fires; treat as success
+        mark(true, 'loadeddata');
+      };
+
+      const onError = () => mark(false, 'error');
+      const onTimeout = () => mark(false, 'timeout');
+
+      const cleanup = () => {
+        video.removeEventListener('canplaythrough', onCanPlay);
+        video.removeEventListener('loadeddata', onLoadedData);
+        video.removeEventListener('error', onError);
+      };
+
+      video.addEventListener('canplaythrough', onCanPlay, { passive: true });
+      video.addEventListener('loadeddata', onLoadedData, { passive: true });
+      video.addEventListener('error', onError, { passive: true });
+
+      // final fallback timeout per video
+      const t = setTimeout(() => { onTimeout(); clearTimeout(t); }, timeoutMs);
+    });
+  }
+
+  // Preload ALL videos (but robust: proceed after overall timeout too)
+  async function preloadAllVideos() {
+    const videos = Array.from(document.querySelectorAll('video'));
+    if (videos.length === 0) {
+      hideLoader();
+      if (mobileWrapper) mobileWrapper.style.visibility = 'visible';
+      startFirstPage();
+      return;
+    }
+
+    showLoader();
+    if (mobileWrapper) mobileWrapper.style.visibility = 'hidden';
+
+    const perVideoTimeout = 9000; // ms per video
+    const overallTimeout = Math.max(12000, perVideoTimeout * videos.length); // cap overall
+
+    // Start waiting for all with Promise.race to enforce overall timeout
+    const readyPromises = videos.map(v => waitVideoReady(v, perVideoTimeout));
+
+    const allSettled = Promise.allSettled(readyPromises);
+    const overall = new Promise(resolve => setTimeout(resolve, overallTimeout, 'overall-timeout'));
+
+    const result = await Promise.race([ allSettled, overall ]);
+
+    // If overall timeout fired (result === 'overall-timeout'), still await what finished
+    let outcomes;
+    if (result === 'overall-timeout') {
+      outcomes = await allSettled; // get whatever ended
+    } else {
+      outcomes = result; // settled results
+    }
+
+    // mark any unresolved videos as ready to avoid infinite loader
+    outcomes.forEach(o => {
+      if (o && o.status === 'fulfilled' && o.value && o.value.video) {
+        try { o.value.video.dataset.ready = "true"; } catch(e){}
+      }
+    });
+
+    hideLoader();
+    if (mobileWrapper) mobileWrapper.style.visibility = 'visible';
+    startFirstPage();
+  }
+
+  // === START PAGE1 (autoplay muted) & show storyIcon ===
+  function startFirstPage() {
+    const page1Video = document.querySelector('#page1 video');
+    if (page1Video) {
+      try {
+        page1Video.muted = true;
+        page1Video.play().catch(()=>{ /* autoplay may be blocked on some browsers but it's muted so should play */ });
+      } catch(e){}
+      // Ensure story icon shows after a short delay so layout settled
+      setTimeout(() => {
+        if (storyIcon) storyIcon.classList.add('story-show');
+        updateOverlays();
+      }, 700); // shorter delay — page already visible
+    } else {
+      if (storyIcon) storyIcon.classList.add('story-show');
+      updateOverlays();
+    }
+  }
+
+  // === Overlay positioning helpers ===
   function computeVisibleRect(video) {
     const r = video.getBoundingClientRect();
     const iw = video.videoWidth || r.width;
@@ -41,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function findActiveVideo() {
+    if (!mobileWrapper) return null;
     const wrapRect = mobileWrapper.getBoundingClientRect();
     const centerY = wrapRect.top + wrapRect.height / 2;
     let best = null, bestDist = Infinity;
@@ -67,116 +175,134 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateOverlays() {
     positionElementToVideo(storyIcon, 'video1', 0.5, 0.95);
-    positionElementToVideo(locationBtn, 'video6', 0.5, 0.75);
-    positionElementToVideo(copyBtn1, 'video7', 0.5, 0.38);
-    positionElementToVideo(copyBtn2, 'video7', 0.5, 0.69);
+    positionElementToVideo(locationBtn, 'video3', 0.5, 0.75);
+    positionElementToVideo(copyBtn1, 'video4', 0.5, 0.38);
+    positionElementToVideo(copyBtn2, 'video4', 0.5, 0.69);
     positionElementToVideo(bottomNav, 'active', 0.5, 0.95);
   }
 
   function updateVisibility() {
-    const index = Math.round(mobileWrapper.scrollTop / mobileWrapper.clientHeight);
+    const index = Math.round((mobileWrapper ? mobileWrapper.scrollTop : 0) / (mobileWrapper ? mobileWrapper.clientHeight : 1));
     const activeVideo = findActiveVideo();
 
-    if (index >= 1 && index <= 4) {
-      bottomNav.style.opacity = "1";
-      bottomNav.style.pointerEvents = "auto";
-    } else {
-      bottomNav.style.opacity = "0";
-      bottomNav.style.pointerEvents = "none";
+    // NAVBAR hanya di page 2 (index 1)
+    if (bottomNav) {
+      if (index === 1) {
+        bottomNav.style.opacity = "1";
+        bottomNav.style.pointerEvents = "auto";
+      } else {
+        bottomNav.style.opacity = "0";
+        bottomNav.style.pointerEvents = "none";
+      }
     }
 
-    if (activeVideo && activeVideo.id === "video6") {
-      locationBtn.style.opacity = "1";
-      locationBtn.style.pointerEvents = "auto";
-    } else {
-      locationBtn.style.opacity = "0";
-      locationBtn.style.pointerEvents = "none";
+    if (locationBtn) {
+      if (activeVideo && activeVideo.id === "video3") {
+        locationBtn.style.opacity = "1";
+        locationBtn.style.pointerEvents = "auto";
+      } else {
+        locationBtn.style.opacity = "0";
+        locationBtn.style.pointerEvents = "none";
+      }
     }
 
-    if (activeVideo && activeVideo.id === "video7") {
-      copyBtn1.style.opacity = "1"; copyBtn1.style.pointerEvents = "auto";
-      copyBtn2.style.opacity = "1"; copyBtn2.style.pointerEvents = "auto";
-    } else {
-      copyBtn1.style.opacity = "0"; copyBtn1.style.pointerEvents = "none";
-      copyBtn2.style.opacity = "0"; copyBtn2.style.pointerEvents = "none";
+    if (copyBtn1 && copyBtn2) {
+      if (activeVideo && activeVideo.id === "video4") {
+        copyBtn1.style.opacity = "1"; copyBtn1.style.pointerEvents = "auto";
+        copyBtn2.style.opacity = "1"; copyBtn2.style.pointerEvents = "auto";
+      } else {
+        copyBtn1.style.opacity = "0"; copyBtn1.style.pointerEvents = "none";
+        copyBtn2.style.opacity = "0"; copyBtn2.style.pointerEvents = "none";
+      }
     }
   }
 
-  // Page1 autoplay
-  const page1Video = document.querySelector('#page1 video');
-  if (page1Video) {
-    page1Video.muted = true;
-    page1Video.play().catch(() => {});
-    setTimeout(() => {
-      if (storyIcon) storyIcon.classList.add('story-show');
-      updateOverlays();
-    }, 3000);
-  }
-
-  // autoplay observer
-  const autoplayObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const video = entry.target.querySelector('video');
-      if (!video) return;
-      if (entry.isIntersecting) video.play().catch(()=>{});
-      else video.pause();
-    });
-  }, { threshold: 0.6 });
-  pages.forEach(p => { if (p.id !== 'page1') autoplayObserver.observe(p); });
-
-  // === START AUDIO setelah storyIcon diklik ===
-  if (storyIcon) {
-    storyIcon.addEventListener('click', () => {
-      audio.muted = false;
-      audio.currentTime = 0;
-
-      audio.play().then(() => {
-        console.log("✅ Musik play setelah klik storyIcon");
-        isPlaying = true;
-        soundBtn.querySelector('img').src = 'assets/icons/soundon.png';
-      }).catch(err => {
-        console.error("❌ Musik gagal jalan:", err);
-      });
-
-      mobileWrapper.style.overflowY = 'scroll';
-      pages[1].scrollIntoView({ behavior: 'smooth' });
-
-      setTimeout(() => { updateVisibility(); updateOverlays(); }, 600);
-    });
-  }
-
-  // page6 animasi
-  const page6 = document.getElementById('page6');
-  if (page6 && locationBtn) {
-    const o = new IntersectionObserver((entries) => {
+  // === Intersection autoplay for pages (except page1) ===
+  try {
+    const autoplayObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
+        const video = entry.target.querySelector('video');
+        if (!video) return;
         if (entry.isIntersecting) {
-          locationBtn.classList.remove('location-show'); void locationBtn.offsetWidth;
-          locationBtn.classList.add('location-show');
+          // play if ready or attempt play (muted videos not problem)
+          video.play().catch(()=>{/*ignore*/});
         } else {
-          locationBtn.classList.remove('location-show');
+          video.pause();
         }
       });
     }, { threshold: 0.6 });
-    o.observe(page6);
-  }
 
-  // page7 animasi
-  const page7 = document.getElementById('page7');
-  if (page7) {
-    const o7 = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          [copyBtn1, copyBtn2].forEach(btn => {
-            if (btn) { btn.classList.remove('copy-show'); void btn.offsetWidth; btn.classList.add('copy-show'); }
-          });
+    pages.forEach(p => { if (p && p.id !== 'page1') autoplayObserver.observe(p); });
+  } catch(e){ /* IntersectionObserver might not be available in very old browsers */ }
+
+  // === START AUDIO setelah storyIcon diklik (user gesture) ===
+  if (storyIcon) {
+    storyIcon.addEventListener('click', async () => {
+      // show overlay / unlock scroll
+      if (audio) {
+        audio.muted = false;
+        try {
+          if (!isPlaying) {
+            audio.currentTime = 0;
+            await audio.play();
+            isPlaying = true;
+            if (soundBtn && soundBtn.querySelector) {
+              try { soundBtn.querySelector('img').src = 'assets/icons/soundon.png'; } catch(e){}
+            }
+          } else if (audio.paused) {
+            await audio.play();
+            if (soundBtn && soundBtn.querySelector) {
+              try { soundBtn.querySelector('img').src = 'assets/icons/soundon.png'; } catch(e){}
+            }
+          }
+        } catch(err) {
+          console.error('❌ Audio gagal jalan (user gesture may be required):', err);
         }
-      });
-    }, { threshold: 0.6 });
-    o7.observe(page7);
+      }
+
+      if (mobileWrapper) mobileWrapper.style.overflowY = 'scroll';
+      // go to page 2
+      if (pages && pages[1]) pages[1].scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => { updateVisibility(); updateOverlays(); }, 600);
+    }, { passive: true });
   }
 
-  // toast
+  // === page3 animation observer ===
+  const page3 = document.getElementById('page3');
+  if (page3 && locationBtn) {
+    try {
+      const o = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            locationBtn.classList.remove('location-show'); void locationBtn.offsetWidth;
+            locationBtn.classList.add('location-show');
+          } else {
+            locationBtn.classList.remove('location-show');
+          }
+        });
+      }, { threshold: 0.6 });
+      o.observe(page3);
+    } catch(e){}
+  }
+
+  // === page4 animation observer ===
+  const page4 = document.getElementById('page4');
+  if (page4) {
+    try {
+      const o4 = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            [copyBtn1, copyBtn2].forEach(btn => {
+              if (btn) { btn.classList.remove('copy-show'); void btn.offsetWidth; btn.classList.add('copy-show'); }
+            });
+          }
+        });
+      }, { threshold: 0.6 });
+      o4.observe(page4);
+    } catch(e){}
+  }
+
+  // === Toast / copy helpers ===
   function showToast(msg) {
     let toast = document.getElementById('toast');
     if (!toast) {
@@ -191,74 +317,83 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (copyBtn1) copyBtn1.addEventListener('click', () => {
-    navigator.clipboard.writeText('1640005528270').then(() => {
-      showToast('Nomor rekening Mandiri berhasil dicopy ✅');
-    });
-  });
-  if (copyBtn2) copyBtn2.addEventListener('click', () => {
-    navigator.clipboard.writeText('3450508143').then(() => {
-      showToast('Nomor rekening BCA berhasil dicopy ✅');
-    });
+    const text = '1640005528270';
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Mandiri Account Number Successfully Copied');
+      }).catch(() => fallbackCopy(text));
+    } else fallbackCopy(text);
   });
 
-  // ==== FIX scrollToPage biar video langsung ready ====
-  function scrollToPage(i) {
-    const p = pages[i];
-    if (!p) return;
-    const v = p.querySelector('video');
-    if (v) {
-      v.preload = 'auto';
-      v.play().catch(()=>{});
-    }
-    p.scrollIntoView({ behavior: 'smooth' });
+  if (copyBtn2) copyBtn2.addEventListener('click', () => {
+    const text = '3450508143';
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('BCA Account Number Successfully Copied');
+      }).catch(() => fallbackCopy(text));
+    } else fallbackCopy(text);
+  });
+
+  function fallbackCopy(text) {
+    const input = document.createElement('input');
+    input.value = text;
+    document.body.appendChild(input);
+    input.select();
+    try { document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(input);
+    showToast('Nomor rekening berhasil dicopy ✅');
   }
 
+  // === Navbar buttons (keep positions untouched) ===
   const homeBtn = document.getElementById('homeBtn');
   const groomBtn = document.getElementById('groomBtn');
   const giftBtn = document.getElementById('giftBtn');
-  if (homeBtn) homeBtn.addEventListener('click', () => scrollToPage(0));
-  if (groomBtn) groomBtn.addEventListener('click', () => scrollToPage(5));
-  if (giftBtn) giftBtn.addEventListener('click', () => scrollToPage(6));
+  if (homeBtn) homeBtn.addEventListener('click', () => { if (pages[0]) pages[0].scrollIntoView({ behavior: 'smooth' }); });
+  if (groomBtn) groomBtn.addEventListener('click', () => { if (pages[2]) pages[2].scrollIntoView({ behavior: 'smooth' }); });
+  if (giftBtn) giftBtn.addEventListener('click', () => { if (pages[3]) pages[3].scrollIntoView({ behavior: 'smooth' }); });
 
   if (locationBtn) {
     locationBtn.addEventListener('click', () => {
-      window.open("https://maps.app.goo.gl/1QNJQmjTruCgxpyx8", "_blank");
+      window.open('https://maps.app.goo.gl/1QNJQmjTruCgxpyx8', '_blank');
     });
   }
 
   if (soundBtn) {
-    soundBtn.addEventListener('click', () => {
-      if (!isPlaying) {
+    soundBtn.addEventListener('click', async () => {
+      if (!isPlaying && audio) {
         audio.muted = false;
         audio.currentTime = 0;
-        audio.play().catch(()=>{}); 
-        isPlaying = true;
-        soundBtn.querySelector('img').src = 'assets/icons/soundon.png';
-      } else if (audio.paused) {
-        audio.play(); 
-        soundBtn.querySelector('img').src = 'assets/icons/soundon.png';
-      } else {
-        audio.pause(); 
-        soundBtn.querySelector('img').src = 'assets/icons/soundoff.png';
+        try { await audio.play(); isPlaying = true; } catch(e){ console.warn('audio.play() failed', e); }
+        if (soundBtn.querySelector) try { soundBtn.querySelector('img').src = 'assets/icons/soundon.png'; } catch(e){}
+      } else if (audio && audio.paused) {
+        try { await audio.play(); } catch(e){/*ignore*/}
+        if (soundBtn.querySelector) try { soundBtn.querySelector('img').src = 'assets/icons/soundon.png'; } catch(e){}
+      } else if (audio) {
+        audio.pause();
+        if (soundBtn.querySelector) try { soundBtn.querySelector('img').src = 'assets/icons/soundoff.png'; } catch(e){}
       }
     });
   }
 
-  // disable zoom gesture
-  document.addEventListener("gesturestart", e => e.preventDefault());
-  document.addEventListener("gesturechange", e => e.preventDefault());
-  document.addEventListener("gestureend", e => e.preventDefault());
-  document.addEventListener("dblclick", e => e.preventDefault(), { passive:false });
+  // disable pinch zoom & dblclick zoom (keep this)
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  document.addEventListener('gesturechange', e => e.preventDefault());
+  document.addEventListener('gestureend', e => e.preventDefault());
+  document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
 
+  // helpers to keep overlays updated
   const tickAll = () => { updateOverlays(); updateVisibility(); };
   window.addEventListener('resize', tickAll);
   window.addEventListener('orientationchange', tickAll);
-  mobileWrapper.addEventListener('scroll', tickAll);
+  if (mobileWrapper) mobileWrapper.addEventListener('scroll', tickAll);
   document.querySelectorAll('video').forEach(v => v.addEventListener('loadedmetadata', tickAll));
   setTimeout(tickAll, 250);
 
-  // Debug error audio
-  audio.addEventListener("error", () => {
-    console.error("❌ Audio gagal dimuat:", audio.error);
+  // Start preload flow
+  preloadAllVideos();
+
+  // audio error logging
+  if (audio) audio.addEventListener('error', () => {
+    console.error('❌ Audio gagal dimuat:', audio.error);
   });
 });
